@@ -7,7 +7,7 @@ public class MyPlayer : MonoBehaviour
 {
     public GameObject prefab;
     public List<GameObject> nodes = new List<GameObject>();
-    public int totalCount = 5;
+    public int totalCount = 50;
     public float defaultSpeed = 1.0f;
     public float boostedSpeed = 1.8f;
     public float turnSpeed = 1.0f;
@@ -15,26 +15,29 @@ public class MyPlayer : MonoBehaviour
 
     private float _speed;
     private List<Vector3> _lastPosList = new List<Vector3>();
-    private float _nodeDistance = 0.0f;
+    private float _nodeDistance = 1.0f;
 
 	void Awake () {
         prefab.SetActive(false);
         _speed = defaultSpeed;
-        _nodeDistance = prefab.GetComponent<RectTransform>().rect.height;
+        //_nodeDistance = prefab.GetComponent<RectTransform>().rect.height;
 
         for (int i = 0; i < totalCount; ++i)
         {
             GameObject node = Instantiate<GameObject>(prefab, prefab.transform.parent);
+            node.transform.parent.SetSiblingIndex(1);
             node.SetActive(true);
             if (nodes.Count <= 0)
                 node.transform.localPosition = Vector3.zero;
             else
-                node.transform.position = nodes.Last().transform.position - new Vector3(0.0f, _nodeDistance, 0.0f);
+                node.transform.position = nodes.Last().transform.position - new Vector3(0.0f, 5.0f, 0.0f);
 
             _lastPosList.Add(node.transform.position);
             nodes.Add(node);
         }
-	}
+
+        _nodeDistance = (nodes[0].transform.position - nodes[1].transform.position).magnitude;
+    }
 	
 	void Update () {
         float _time = Time.deltaTime;
@@ -52,8 +55,11 @@ public class MyPlayer : MonoBehaviour
             else
             {
                 Vector3 dir = nodes[i - 1].transform.position - nodes[i].transform.position;
-                nodes[i].transform.position = nodes[i].transform.position + dir.normalized * moved.magnitude;
-                
+                if (dir.magnitude < _nodeDistance)
+                    continue;
+
+                if (dir.magnitude > moved.magnitude)
+                    nodes[i].transform.position = nodes[i].transform.position + dir.normalized * moved.magnitude;
                 
                 //nodes[i].transform.position = _lastPosList[i];
             }
